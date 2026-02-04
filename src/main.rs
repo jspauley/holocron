@@ -170,6 +170,7 @@ fn run_init(path: PathBuf) -> Result<()> {
     }
     println!("  - .claude/commands/til.md");
     println!("  - .claude/commands/note.md");
+    println!("  - .claude/settings.json");
     println!();
     println!("Run {} to set this as your TIL path.", "holocron config --til-path <path>".cyan());
 

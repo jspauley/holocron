@@ -20,10 +20,11 @@ pub fn write_til(
             .with_context(|| format!("Failed to create category directory: {:?}", category_dir))?;
     }
 
-    // Write the TIL file
+    // Write the TIL file (ensure trailing newline)
     let filename = sanitize_filename(filename);
     let file_path = category_dir.join(&filename);
-    fs::write(&file_path, content)
+    let content = ensure_trailing_newline(content);
+    fs::write(&file_path, &content)
         .with_context(|| format!("Failed to write TIL file: {:?}", file_path))?;
 
     // Update README.md
@@ -103,8 +104,8 @@ fn update_readme(
     // Find or create category section and add entry
     add_entry_to_category(&mut lines, archive_dir, category, filename, title)?;
 
-    // Write back
-    let new_content = lines.join("\n");
+    // Write back (ensure trailing newline)
+    let new_content = format!("{}\n", lines.join("\n"));
     fs::write(&readme_path, new_content).context("Failed to write README.md")?;
 
     Ok(())
@@ -233,6 +234,14 @@ fn find_end_position(lines: &[String]) -> usize {
         insert_pos -= 1;
     }
     insert_pos
+}
+
+fn ensure_trailing_newline(s: &str) -> String {
+    if s.ends_with('\n') {
+        s.to_string()
+    } else {
+        format!("{}\n", s)
+    }
 }
 
 fn capitalize_first(s: &str) -> String {

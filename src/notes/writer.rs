@@ -13,7 +13,9 @@ pub fn write_note(notes_path: &Path, filename: &str, content: &str) -> Result<Pa
     let filename = sanitize_filename(filename);
     let file_path = notes_path.join(&filename);
 
-    fs::write(&file_path, content)
+    // Ensure trailing newline
+    let content = ensure_trailing_newline(content);
+    fs::write(&file_path, &content)
         .with_context(|| format!("Failed to write note file: {:?}", file_path))?;
 
     Ok(file_path)
@@ -81,6 +83,14 @@ fn collapse_underscores(s: &str) -> String {
     }
 
     result.trim_matches('_').to_string()
+}
+
+fn ensure_trailing_newline(s: &str) -> String {
+    if s.ends_with('\n') {
+        s.to_string()
+    } else {
+        format!("{}\n", s)
+    }
 }
 
 fn sanitize_filename(filename: &str) -> String {
@@ -186,7 +196,8 @@ title:
         let path = write_note(temp_dir.path(), "test_note.md", content)?;
 
         assert!(path.exists());
-        assert_eq!(fs::read_to_string(&path)?, content);
+        // Should have trailing newline added
+        assert_eq!(fs::read_to_string(&path)?, format!("{}\n", content));
 
         Ok(())
     }

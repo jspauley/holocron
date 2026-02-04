@@ -44,6 +44,7 @@ where
 {
     let mut child = Command::new("claude")
         .args(&args)
+        .stdin(Stdio::inherit())  // Allow permission prompts
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()?;
@@ -99,6 +100,7 @@ where
         "--output-format",
         "stream-json",
         "--verbose",
+        "--allowedTools=WebFetch,WebSearch",
         prompt,
     ];
     run_claude_with_args(args, on_text)
@@ -114,6 +116,7 @@ where
         "--output-format",
         "stream-json",
         "--verbose",
+        "--allowedTools=WebFetch,WebSearch",
         "--resume",
         session_id,
         message,

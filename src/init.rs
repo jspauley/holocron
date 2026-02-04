@@ -4,27 +4,25 @@ use std::path::Path;
 
 const TIL_SKILL: &str = r#"# /til - Generate TIL Entry
 
-Generate a "Today I Learned" markdown entry based on the current conversation.
+Generate a short "Today I Learned" markdown entry based on the current conversation.
 
-## Format Requirements
-- H1 title describing the action (e.g., "Update A Forked Repo", "Setup An MQTT Broker")
-- Opening that explains the situation or problem ("If you want to...", "There are times when...")
-- Step-by-step flow: prose explaining what to do, then a code block, then more prose
-- One command per code block when walking through steps
-- Concise but complete: 15-40 lines typically
+## Format
+- H1 title (action-oriented: "Update A Forked Repo", "Create Table In Postgres")
+- 1-2 sentence intro explaining WHEN/WHY you'd do this
+- Code example(s) with brief prose transitions
+- **Target: 15-30 lines total. Shorter is better.**
 
-## Style Guidelines
-- Conversational, second-person tone ("you can", "let's", "we'll")
-- Start with WHY or WHEN, not a definition
-- Code blocks should be clean - put explanations in prose before/after, not as comments
-- Avoid heavy H2 structure; use flowing prose with occasional H3 for distinct sections
-- It's okay to end casually ("That's it!") or with a brief practical note
-- Do NOT write like documentation or a cheat sheet
+## Style
+- Conversational: "If you want to...", "you can...", "let's..."
+- NO H2/H3 sections - just flowing prose and code
+- NO lists of options, categories, or variations
+- NO comprehensive coverage - just the one thing you learned
+- End casually ("That's it!") or with one practical tip
 
-## Output Format
-Return ONLY the markdown content. No preamble.
+## Output
+Return ONLY the markdown. No preamble.
 
-## Example Structure
+## Example (25 lines)
 ```markdown
 # Update A Forked Repo
 
@@ -36,15 +34,10 @@ First, add the original repo as an upstream source:
 git remote add upstream https://github.com/original-source/repo-name.git
 \`\`\`
 
-Next, fetch all of the remote branches:
+Next, fetch all of the branches and rebase:
 
 \`\`\`bash
 git fetch upstream
-\`\`\`
-
-Now rebase your branch on the upstream:
-
-\`\`\`bash
 git rebase upstream/main
 \`\`\`
 
@@ -89,6 +82,13 @@ aliases: [alternative, names]
 
 ## Output Format
 Return ONLY the markdown content for the note file, starting with the YAML frontmatter. Do not include any preamble or explanation.
+"#;
+
+const CLAUDE_SETTINGS: &str = r#"{
+  "permissions": {
+    "allowedTools": ["WebFetch", "WebSearch"]
+  }
+}
 "#;
 
 const README_TEMPLATE: &str = r#"# Today I Learned
@@ -137,6 +137,11 @@ pub fn init_til_repo(path: &Path, archive_dir: &str) -> Result<()> {
     fs::write(&note_skill_path, NOTE_SKILL)
         .with_context(|| "Failed to write note.md skill")?;
 
+    // Write settings.json with allowed tools
+    let settings_path = path.join(".claude").join("settings.json");
+    fs::write(&settings_path, CLAUDE_SETTINGS)
+        .with_context(|| "Failed to write settings.json")?;
+
     Ok(())
 }
 
@@ -156,6 +161,7 @@ mod tests {
         assert!(til_path.join("archive").exists());
         assert!(til_path.join(".claude/commands/til.md").exists());
         assert!(til_path.join(".claude/commands/note.md").exists());
+        assert!(til_path.join(".claude/settings.json").exists());
 
         Ok(())
     }
