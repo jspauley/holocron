@@ -7,33 +7,48 @@ const TIL_SKILL: &str = r#"# /til - Generate TIL Entry
 Generate a "Today I Learned" markdown entry based on the current conversation.
 
 ## Format Requirements
-- H1 title describing what was learned (use sentence case, be specific)
-- 1-2 sentence introduction providing context for why this is useful
-- Practical code examples in fenced blocks with language specified
-- Concise: 10-30 lines typically
-- Match existing TIL style in this repository
+- H1 title describing the action (e.g., "Update A Forked Repo", "Setup An MQTT Broker")
+- Opening that explains the situation or problem ("If you want to...", "There are times when...")
+- Step-by-step flow: prose explaining what to do, then a code block, then more prose
+- One command per code block when walking through steps
+- Concise but complete: 15-40 lines typically
 
 ## Style Guidelines
-- Active voice, present tense
-- Technically accurate but accessible
-- Include specific commands/code that solve the problem
-- No fluff - get straight to the useful information
-- End with a brief note about when to use this or what to watch out for
+- Conversational, second-person tone ("you can", "let's", "we'll")
+- Start with WHY or WHEN, not a definition
+- Code blocks should be clean - put explanations in prose before/after, not as comments
+- Avoid heavy H2 structure; use flowing prose with occasional H3 for distinct sections
+- It's okay to end casually ("That's it!") or with a brief practical note
+- Do NOT write like documentation or a cheat sheet
 
 ## Output Format
-Return ONLY the markdown content for the TIL file. Do not include any preamble or explanation - just the raw markdown that should be written to the file.
+Return ONLY the markdown content. No preamble.
 
 ## Example Structure
 ```markdown
-# How to Do the Thing
+# Update A Forked Repo
 
-Brief context about when and why you'd want to do this thing.
+If you have forked a repo, and the original now includes changes you'd like to have in your copy, you can pull in the latest version using `git rebase`.
+
+First, add the original repo as an upstream source:
 
 \`\`\`bash
-the-actual-command --with flags
+git remote add upstream https://github.com/original-source/repo-name.git
 \`\`\`
 
-Optional additional explanation or follow-up commands if needed.
+Next, fetch all of the remote branches:
+
+\`\`\`bash
+git fetch upstream
+\`\`\`
+
+Now rebase your branch on the upstream:
+
+\`\`\`bash
+git rebase upstream/main
+\`\`\`
+
+That's it! You may need to force push if this branch was already on GitHub.
 ```
 "#;
 

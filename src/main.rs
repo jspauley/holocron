@@ -80,7 +80,7 @@ fn ensure_config() -> Result<Config> {
 
     let til_path = PathBuf::from(shellexpand::tilde(&til_path).to_string());
 
-    // Check if it exists, offer to create
+    // Check if it exists, offer to create or install skills
     if !til_path.exists() {
         let create = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("TIL repository doesn't exist. Create it?")
@@ -91,6 +91,18 @@ fn ensure_config() -> Result<Config> {
         if create == 0 {
             init::init_til_repo(&til_path, "archive")?;
             println!("{} Created TIL repository at {:?}", "✓".green(), til_path);
+        }
+    } else if !til_path.join(".claude").join("commands").exists() {
+        // Existing repo without skills - offer to install them
+        let install = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Install Claude Code skills (/til, /note) in this repo?")
+            .items(&["Yes, install skills", "No, skip"])
+            .default(0)
+            .interact()?;
+
+        if install == 0 {
+            init::init_til_repo(&til_path, "archive")?;
+            println!("{} Installed skills at {:?}", "✓".green(), til_path.join(".claude/commands"));
         }
     }
 
@@ -138,17 +150,24 @@ fn ensure_config() -> Result<Config> {
 fn run_init(path: PathBuf) -> Result<()> {
     let path = PathBuf::from(shellexpand::tilde(path.to_string_lossy().as_ref()).to_string());
 
-    if path.join("README.md").exists() {
-        return Err(anyhow!("Directory already contains a README.md. Aborting to avoid overwriting."));
-    }
+    let readme_existed = path.join("README.md").exists();
+    let archive_existed = path.join("archive").exists();
 
     init::init_til_repo(&path, "archive")?;
 
     println!("{} Initialized TIL repository at {:?}", "✓".green(), path);
     println!();
     println!("Created:");
-    println!("  - README.md");
-    println!("  - archive/");
+    if readme_existed {
+        println!("  - README.md {}", "(already existed, skipped)".dimmed());
+    } else {
+        println!("  - README.md");
+    }
+    if archive_existed {
+        println!("  - archive/ {}", "(already existed)".dimmed());
+    } else {
+        println!("  - archive/");
+    }
     println!("  - .claude/commands/til.md");
     println!("  - .claude/commands/note.md");
     println!();
@@ -226,8 +245,8 @@ fn print_welcome_banner() {
     println!();
     println!("Commands:");
     println!(
-        "  {}  - Start a deep dive on a topic",
-        "/deep <topic>".green()
+        "  {} - Start a deep dive on a topic",
+        "/learn <topic>".green()
     );
     println!("  {}    - Analyze an article from URL", "/link <url>".green());
     println!("  {}          - Generate TIL from session", "/til".green());
@@ -268,7 +287,7 @@ fn run_interactive_mode(config: &Config) -> Result<()> {
         } else {
             println!(
                 "{}",
-                "Start a session with /deep <topic> or /link <url>".yellow()
+                "Start a session with /learn <topic> or /link <url>".yellow()
             );
         }
     }
@@ -277,7 +296,7 @@ fn run_interactive_mode(config: &Config) -> Result<()> {
 }
 
 fn handle_command(input: &str, session: &mut Option<Session>, config: &Config) -> Result<Option<bool>> {
-    if let Some(topic) = input.strip_prefix("/deep ") {
+    if let Some(topic) = input.strip_prefix("/learn ") {
         let topic = topic.trim();
         if topic.is_empty() {
             println!("{}", "Please provide a topic.".yellow());
@@ -323,7 +342,7 @@ fn handle_command(input: &str, session: &mut Option<Session>, config: &Config) -
         } else {
             println!(
                 "{}",
-                "No active session. Start with /deep or /link first.".yellow()
+                "No active session. Start with /learn or /link first.".yellow()
             );
         }
         return Ok(Some(true));
@@ -335,7 +354,7 @@ fn handle_command(input: &str, session: &mut Option<Session>, config: &Config) -
         } else {
             println!(
                 "{}",
-                "No active session. Start with /deep or /link first.".yellow()
+                "No active session. Start with /learn or /link first.".yellow()
             );
         }
         return Ok(Some(true));
