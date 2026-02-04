@@ -1,0 +1,36 @@
+[package]
+name = "holocron"
+version = "0.1.0"
+edition = "2021"
+description = "A learning assistant CLI backed by Claude Code"
+
+[dependencies]
+clap = { version = "4.4", features = ["derive"] }
+tokio = { version = "1.35", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+anyhow = "1.0"
+colored = "2.1"
+dialoguer = "0.11"
+indicatif = "0.17"
+tempfile = "3.10"
+dirs = "5.0"
+chrono = "0.4"
+shellexpand = "3.1"
+
+[dev-dependencies]
+tempfile = "3.10"
+
+[lints.rust]
+warnings = "deny"
+
+[lints.clippy]
+# Enforce cyclomatic complexity < 10
+cognitive_complexity = { level = "deny", priority = -1 }
+# Additional quality lints
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+todo = "warn"
+dbg_macro = "warn"
